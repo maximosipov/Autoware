@@ -1,35 +1,22 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(vision_darknet_detect)
 
 
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
-
 find_package(autoware_config_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-        cv_bridge
-        image_transport
-        roscpp
-        sensor_msgs
-        std_msgs
-        autoware_msgs
-        autoware_config_msgs
-        )
+
+find_package(ament_cmake REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
 
 find_package(CUDA)
 find_package(OpenCV REQUIRED)
 find_package(OpenMP)
-
-catkin_package(CATKIN_DEPENDS
-        cv_bridge
-        image_transport
-        roscpp
-        sensor_msgs
-        std_msgs
-        autoware_msgs
-        autoware_config_msgs
-        )
 
 set(CMAKE_CXX_FLAGS "-O3 -g -Wall ${CMAKE_CXX_FLAGS}")
 
@@ -107,7 +94,6 @@ IF (CUDA_FOUND)
 
     target_include_directories(vision_darknet_detect_lib PRIVATE
             ${OpenCV_INCLUDE_DIR}
-            ${catkin_INCLUDE_DIRS}
             ${autoware_config_msgs_INCLUDE_DIRS}
             ${autoware_msgs_INCLUDE_DIRS}
             ${Boost_INCLUDE_DIRS}
@@ -119,7 +105,6 @@ IF (CUDA_FOUND)
 
     target_link_libraries(vision_darknet_detect_lib
             ${OpenCV_LIBRARIES}
-            ${catkin_LIBRARIES}
             ${PCL_LIBRARIES}
             ${Qt5Core_LIBRARIES}
             ${CUDA_LIBRARIES}
@@ -128,7 +113,13 @@ IF (CUDA_FOUND)
             )
 
     add_dependencies(vision_darknet_detect_lib
-            ${catkin_EXPORTED_TARGETS}
+            cv_bridge
+            image_transport
+            roscpp
+            sensor_msgs
+            std_msgs
+            autoware_msgs
+            autoware_config_msgs
             )
 
     #ros node
@@ -142,7 +133,6 @@ IF (CUDA_FOUND)
 
     target_include_directories(vision_darknet_detect PRIVATE
             ${CUDA_INCLUDE_DIRS}
-            ${catkin_INCLUDE_DIRS}
             ${autoware_config_msgs_INCLUDE_DIRS}
             ${autoware_msgs_INCLUDE_DIRS}
             ${PROJECT_SOURCE_DIR}/darknet
@@ -151,28 +141,43 @@ IF (CUDA_FOUND)
             )
 
     target_link_libraries(vision_darknet_detect
-            ${catkin_LIBRARIES}
             ${OpenCV_LIBS}
             ${CUDA_LIBRARIES}
             ${CUDA_CUBLAS_LIBRARIES}
             ${CUDA_curand_LIBRARY}
             vision_darknet_detect_lib
             )
-    add_dependencies(vision_darknet_detect
-            ${catkin_EXPORTED_TARGETS}
+    ament_target_dependencies(vision_darknet_detect
+            cv_bridge
+            image_transport
+            roscpp
+            sensor_msgs
+            std_msgs
+            autoware_msgs
+            autoware_config_msgs
             )
     install(TARGETS vision_darknet_detect_lib vision_darknet_detect
-            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION lib/${PROJECT_NAME}
             )
     install(DIRECTORY launch/
-            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+            DESTINATION share/${PROJECT_NAME}/launch
             PATTERN ".svn" EXCLUDE)
 
     install(DIRECTORY darknet/cfg/
-            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/darknet/cfg/
+            DESTINATION share/${PROJECT_NAME}/darknet/cfg/
             PATTERN ".svn" EXCLUDE)
 ELSE()
     message("darknet won't be built, CUDA was not found.")
 ENDIF ()
+
+ament_export_dependencies(cv_bridge)
+ament_export_dependencies(image_transport)
+ament_export_dependencies(roscpp)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(autoware_msgs)
+ament_export_dependencies(autoware_config_msgs)
+
+ament_package()
