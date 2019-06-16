@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(vision_ssd_detect)
 
 set(ROS_VERSION $ENV{ROS_DISTRO})
@@ -9,30 +9,16 @@ find_package(autoware_build_flags REQUIRED)
 find_package(autoware_msgs REQUIRED)
 find_package(autoware_config_msgs REQUIRED)
 
-FIND_PACKAGE(catkin REQUIRED COMPONENTS
-        cv_bridge
-        image_transport
-        roscpp
-        sensor_msgs
-        std_msgs
-        tf
-        autoware_msgs
-        autoware_config_msgs
-        )
+find_package(ament_cmake REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+FIND_PACKAGE(tf REQUIRED)
 
 FIND_PACKAGE(CUDA)
 FIND_PACKAGE(OpenCV REQUIRED)
-
-catkin_package(
-        CATKIN_DEPENDS cv_bridge
-        image_transport
-        roscpp
-        sensor_msgs
-        std_msgs
-        autoware_msgs
-        autoware_config_msgs
-        tf
-)
 
 ###########
 ## Build ##
@@ -40,9 +26,7 @@ catkin_package(
 
 set(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 
-include_directories(
-        ${catkin_INCLUDE_DIRS}
-)
+include_directories()
 
 IF (CUDA_FOUND)
     include_directories(${CUDA_INCLUDE_DIRS})
@@ -65,7 +49,6 @@ if (EXISTS "${SSD_CAFFE_PATH}")
             )
 
     target_link_libraries(vision_ssd_detect
-            ${catkin_LIBRARIES}
             ${OpenCV_LIBRARIES}
             ${CUDA_LIBRARIES}
             ${CUDA_CUBLAS_LIBRARIES}
@@ -81,15 +64,29 @@ if (EXISTS "${SSD_CAFFE_PATH}")
             include
             )
 
-    add_dependencies(vision_ssd_detect
-            ${catkin_EXPORTED_TARGETS}
+    ament_target_dependencies(vision_ssd_detect
+            cv_bridge
+            image_transport
+            roscpp
+            sensor_msgs
+            std_msgs
+            tf
             )
 
     install(TARGETS vision_ssd_detect
-            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION lib/${PROJECT_NAME}
             )
+
+    ament_export_dependencies(cv_bridge)
+    ament_export_dependencies(image_transport)
+    ament_export_dependencies(roscpp)
+    ament_export_dependencies(sensor_msgs)
+    ament_export_dependencies(std_msgs)
+    ament_export_dependencies(tf)
+
+    ament_package()
 else ()
     message("'SSD/Caffe' is not installed. 'ssd_unc' will not be built.")
 endif ()
