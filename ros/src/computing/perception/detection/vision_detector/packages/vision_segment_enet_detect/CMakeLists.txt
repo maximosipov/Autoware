@@ -1,30 +1,21 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(vision_segment_enet_detect)
 
-FIND_PACKAGE(catkin REQUIRED COMPONENTS
-  cv_bridge
-  image_transport
-  roscpp
-  sensor_msgs
-  )
+FIND_PACKAGE(ament_cmake REQUIRED)
+FIND_PACKAGE(cv_bridge REQUIRED)
+FIND_PACKAGE(image_transport REQUIRED)
+FIND_PACKAGE(roscpp REQUIRED)
+FIND_PACKAGE(sensor_msgs REQUIRED)
 FIND_PACKAGE(CUDA)
 FIND_PACKAGE(OpenCV REQUIRED)
 
-catkin_package(CATKIN_DEPENDS
-  cv_bridge
-  image_transport
-  roscpp
-  sensor_msgs
-  )
 ###########
 ## Build ##
 ###########
 
 SET(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
 
-INCLUDE_DIRECTORIES(
-  ${catkin_INCLUDE_DIRS}
-  )
+INCLUDE_DIRECTORIES()
 
 
 #####ENET########
@@ -39,7 +30,6 @@ if (EXISTS "${ENET_CAFFE_PATH}" AND ${CUDA_FOUND})
     )
 
   TARGET_LINK_LIBRARIES(vision_segment_enet_detect
-    ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
     ${CUDA_LIBRARIES}
     ${CUDA_CUBLAS_LIBRARIES}
@@ -54,16 +44,26 @@ if (EXISTS "${ENET_CAFFE_PATH}" AND ${CUDA_FOUND})
     include
     )
 
-  ADD_DEPENDENCIES(vision_segment_enet_detect
-    ${catkin_EXPORTED_TARGETS}
+  ament_target_dependencies(vision_segment_enet_detect
+    cv_bridge
+    image_transport
+    roscpp
+    sensor_msgs
     )
 
   install(TARGETS
         vision_segment_enet_detect
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
   )
+
+  ament_export_dependencies(cv_bridge)
+  ament_export_dependencies(image_transport)
+  ament_export_dependencies(roscpp)
+  ament_export_dependencies(sensor_msgs)
+
+  ament_package()
 else ()
   message("' ENet/Caffe' is not installed. 'vision_segment_enet_detect' will not be built.")
 endif ()
