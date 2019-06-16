@@ -1,19 +1,14 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(libdpm_ttic)
 
 
 find_package(autoware_build_flags REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-        sensor_msgs
-        std_msgs
-        )
+find_package(ament_cmake REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+
 find_package(OpenCV REQUIRED)
 find_package(CUDA)
-
-catkin_package(
-        INCLUDE_DIRS include
-        LIBRARIES libdpm_ttic
-)
 
 set(CMAKE_C_FLAGS "-O2 -g -Wall -Wno-unused-result ${CMAKE_C_FLAGS}")
 set(CMAKE_CXX_FLAGS "-O2 -g -Wall -Wno-unused-result ${CMAKE_CXX_FLAGS}")
@@ -21,7 +16,6 @@ set(CMAKE_CXX_FLAGS "-O2 -g -Wall -Wno-unused-result ${CMAKE_CXX_FLAGS}")
 if(CUDA_FOUND)
     include_directories(
             include
-            ${catkin_INCLUDE_DIRS}
             ${CUDA_INCLUDE_DIRS}
             "common"
             "cpu"
@@ -45,7 +39,6 @@ if(CUDA_FOUND)
     #SET_TARGET_PROPERTIES(libdpm_ttic PROPERTIES OUTPUT_NAME dpm_ttic)
 
     target_link_libraries(libdpm_ttic
-            ${catkin_LIBRARIES}
             ${OpenCV_LIBS}
             ${CUDA_CUDA_LIBRARY}
             )
@@ -100,15 +93,18 @@ if(CUDA_FOUND)
     )
 
     add_custom_target(cuda_binary DEPENDS GPU_function.cubin)
-    add_dependencies(libdpm_ttic
+    ament_target_dependencies(libdpm_ttic
             cuda_binary
+            sensor_msgs
+            std_msgs
             )
+
+    ament_export_dependencies(CUDA)
 
 else()
 
     include_directories(
             include
-            ${catkin_INCLUDE_DIRS}
             "common"
             "cpu"
     )
@@ -124,21 +120,33 @@ else()
     #SET_TARGET_PROPERTIES(libdpm_ttic PROPERTIES OUTPUT_NAME dpm_ttic)
 
     target_link_libraries(libdpm_ttic
-            ${catkin_LIBRARIES}
             ${OpenCV_LIBS}
             )
 
+    ament_target_dependencies(libdpm_ttic
+            sensor_msgs
+            std_msgs
+            )
 
 endif()
 
 install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        DESTINATION include
         FILES_MATCHING PATTERN "*.hpp"
         )
 
 install(TARGETS
         libdpm_ttic
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
         )
+
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(std_msgs)
+
+ament_export_include_directories(include)
+
+ament_export_libraries(libdpm_ttic)
+
+ament_package()
