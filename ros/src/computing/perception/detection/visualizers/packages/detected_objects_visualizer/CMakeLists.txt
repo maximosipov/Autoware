@@ -1,29 +1,16 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(detected_objects_visualizer)
 
-find_package(catkin REQUIRED COMPONENTS
-        autoware_build_flags
-        roscpp
-        autoware_msgs
-        geometry_msgs
-        sensor_msgs
-        tf
-        visualization_msgs
-        cv_bridge
-        image_transport
-        )
-
-catkin_package(
-        CATKIN_DEPENDS
-        roscpp
-        autoware_msgs
-        geometry_msgs
-        sensor_msgs
-        tf
-        visualization_msgs
-        cv_bridge
-        image_transport
-)
+find_package(ament_cmake REQUIRED)
+find_package(autoware_build_flags REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(autoware_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 find_package(OpenCV REQUIRED)
 
@@ -47,22 +34,28 @@ add_executable(visualize_detected_objects
 
 target_include_directories(visualize_detected_objects PRIVATE
         ${OpenCV_INCLUDE_DIR}
-        ${catkin_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIRS}
+        ${cv_bridge_INCLUDE_DIRS}
         include
         )
 
 target_link_libraries(visualize_detected_objects
         ${OpenCV_LIBRARIES}
         ${EIGEN3_LIBRARIES}
-        ${catkin_LIBRARIES}
+        ${cv_bridge_LIBRARIES}
         )
 
-add_dependencies(visualize_detected_objects
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(visualize_detected_objects
+        roscpp
+        autoware_msgs
+        geometry_msgs
+        sensor_msgs
+        tf
+        visualization_msgs
+        image_transport
+        cv_bridge
         )
-
 
 #Image Rect Visualization
 add_executable(visualize_rects
@@ -73,22 +66,40 @@ add_executable(visualize_rects
 
 target_include_directories(visualize_rects PRIVATE
         ${OpenCV_INCLUDE_DIR}
-        ${catkin_INCLUDE_DIRS}
+        ${cv_bridge_INCLUDE_DIRS}
         include
         )
 
 target_link_libraries(visualize_rects
         ${OpenCV_LIBRARIES}
-        ${catkin_LIBRARIES}
+        ${cv_bridge_LIBRARIES}
         )
 
-add_dependencies(visualize_rects
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(visualize_rects
+        roscpp
+        autoware_msgs
+        geometry_msgs
+        sensor_msgs
+        tf
+        visualization_msgs
+        image_transport
+        cv_bridge
         )
 
 install(TARGETS
         visualize_detected_objects visualize_rects
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
         )
+
+ament_export_dependencies(roscpp)
+ament_export_dependencies(autoware_msgs)
+ament_export_dependencies(geometry_msgs)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(tf)
+ament_export_dependencies(visualization_msgs)
+ament_export_dependencies(image_transport)
+ament_export_dependencies(cv_bridge)
+
+ament_package()
