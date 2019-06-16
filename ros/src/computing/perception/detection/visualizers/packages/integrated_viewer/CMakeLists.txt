@@ -1,27 +1,18 @@
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.5)
 project(integrated_viewer)
-
 
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-        cv_bridge
-        image_transport
-        roscpp
-        sensor_msgs
-        std_msgs
-        rviz
-        autoware_msgs
-        )
+find_package(ament_cmake REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(rviz REQUIRED)
 
-set(CMAKE_CXX_FLAGS
-        "-Wall ${CMAKE_CXX_FLAGS}"
-        )
-
-catkin_package(
-        DEPENDS rviz
-)
+set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS}")
 
 if (rviz_QT_VERSION VERSION_LESS "5")
     find_package(Qt4 ${rviz_QT_VERSION} EXACT REQUIRED QtCore QtGui)
@@ -64,11 +55,10 @@ include_directories(
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}
         ${autoware_msgs_INCLUDE_DIRS}
-        ${catkin_INCLUDE_DIRS}
         include
 )
 
-link_directories(${catkin_LIBRARY_DIRS})
+link_directories()
 
 # I prefer the Qt signals and slots to avoid defining "emit", "slots",
 # etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
@@ -107,7 +97,7 @@ set_target_properties(${PROJECT_NAME}
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
         ${QT_LIBRARIES}
-        ${catkin_LIBRARIES})
+        )
 
 
 #############
@@ -115,15 +105,29 @@ target_link_libraries(${PROJECT_NAME}
 #############
 ## Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib)
 
 
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES rviz_plugin_description.xml
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+        DESTINATION share/${PROJECT_NAME})
 
-add_dependencies(${PROJECT_NAME}
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(${PROJECT_NAME}
+        cv_bridge
+        image_transport
+        roscpp
+        sensor_msgs
+        std_msgs
+        rviz
         )
 #endif()
+
+ament_export_dependencies(cv_bridge)
+ament_export_dependencies(image_transport)
+ament_export_dependencies(roscpp)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(rviz)
+
+ament_package()
