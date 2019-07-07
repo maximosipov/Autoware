@@ -1,7 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(ndt_gpu)
 
-find_package(catkin REQUIRED)
+find_package(ament_cmake REQUIRED)
 find_package(PCL REQUIRED)
 find_package(CUDA)
 
@@ -28,7 +28,7 @@ if (CUDA_FOUND)
     else()
         if (NOT DEFINED CUDA_CAPABILITY_VERSION_CHECKER)
             set(CUDA_CAPABILITY_VERSION_CHECKER
-                    "${CATKIN_DEVEL_PREFIX}/lib/capability_version_checker")
+                    "lib/capability_version_checker")
         endif ()
 
         execute_process(COMMAND ${CUDA_CAPABILITY_VERSION_CHECKER}
@@ -46,15 +46,8 @@ if (CUDA_FOUND)
 
     set(SUBSYS_DESC "Point cloud ndt gpu library")
 
-    catkin_package(
-            DEPENDS PCL                                #Non-catkin CMake projects
-            INCLUDE_DIRS include                        #The exported include paths
-            LIBRARIES ndt_gpu                           #The exported libraries from the project
-    )
-
     include_directories(
             ${PCL_INCLUDE_DIRS}
-            ${catkin_INCLUDE_DIRS}
             ${CUDA_INCLUDE_DIRS}
             include
             ${EIGEN3_INCLUDE_DIRS}
@@ -91,17 +84,31 @@ if (CUDA_FOUND)
             )
 
     install(DIRECTORY include/${PROJECT_NAME}/
-            DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+            DESTINATION include/${PROJECT_NAME}
             FILES_MATCHING PATTERN "*.h"
             )
 
-
     install(TARGETS ndt_gpu
-            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION lib/${PROJECT_NAME}
             )
 
+    ament_target_dependencies(${PROJECT_NAME}
+            PCL
+            Eigen3
+            CUDA
+            )
+
+    ament_export_include_directories(include)
+
+    ament_export_libraries(ndt_gpu)
+
+    ament_export_dependencies(PCL)
+    ament_export_dependencies(Eigen3)
+    ament_export_dependencies(CUDA)
+
+    ament_package()
 else ()
     message("ndt_gpu will not be built, CUDA was not found.")
 endif ()
