@@ -1,9 +1,28 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(gnss_localizer)
 
 
 find_package(autoware_build_flags REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(nmea_msgs REQUIRED)
+find_package(gnss REQUIRED)
+find_package(tf REQUIRED)
+
+SET(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
+
+include_directories(
+        include
+        ${roscpp_INCLUDE_DIRS}
+        ${gnss_INCLUDE_DIRS}
+        )
+
+add_executable(fix2tfpose
+        nodes/fix2tfpose/fix2tfpose.cpp
+        )
+target_link_libraries(fix2tfpose ${gnss_LIBRARIES})
+ament_target_dependencies(fix2tfpose
         roscpp
         std_msgs
         nmea_msgs
@@ -11,34 +30,34 @@ find_package(catkin REQUIRED COMPONENTS
         tf
         )
 
-catkin_package()
-
-SET(CMAKE_CXX_FLAGS "-O2 -g -Wall ${CMAKE_CXX_FLAGS}")
-
-include_directories(
-        ${catkin_INCLUDE_DIRS}
-)
-
-add_executable(fix2tfpose
-        nodes/fix2tfpose/fix2tfpose.cpp
-        )
-target_link_libraries(fix2tfpose ${catkin_LIBRARIES})
-add_dependencies(fix2tfpose ${catkin_EXPORTED_TARGETS})
-
-
 add_executable(nmea2tfpose
         nodes/nmea2tfpose/nmea2tfpose_core.cpp
         nodes/nmea2tfpose/nmea2tfpose_node.cpp
         )
-target_include_directories(nmea2tfpose PRIVATE nodes/nmea2tfpose ${catkin_INCLUDE_DIRS})
-target_link_libraries(nmea2tfpose ${catkin_LIBRARIES})
-add_dependencies(nmea2tfpose ${catkin_EXPORTED_TARGETS})
+target_include_directories(nmea2tfpose PRIVATE nodes/nmea2tfpose)
+target_link_libraries(nmea2tfpose ${gnss_LIBRARIES})
+ament_target_dependencies(nmea2tfpose
+        roscpp
+        std_msgs
+        nmea_msgs
+        gnss
+        tf
+        )
 
 install(TARGETS nmea2tfpose fix2tfpose
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+        DESTINATION share/${PROJECT_NAME}/launch
         PATTERN ".svn" EXCLUDE)
+
+ament_export_dependencies(autoware_build_flags)
+ament_export_dependencies(roscpp)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(nmea_msgs)
+ament_export_dependencies(gnss)
+ament_export_dependencies(tf)
+
+ament_package()
