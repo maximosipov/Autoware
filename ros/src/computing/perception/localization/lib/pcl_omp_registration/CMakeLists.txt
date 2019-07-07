@@ -1,13 +1,8 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(pcl_omp_registration)
 
-find_package(catkin REQUIRED COMPONENTS)
+find_package(ament_cmake REQUIRED)
 find_package(PCL REQUIRED)
-
-catkin_package(
-        INCLUDE_DIRS include
-        LIBRARIES pcl_omp_registration
-)
 
 find_package(Eigen3 QUIET)
 
@@ -58,13 +53,28 @@ ELSE (PCL_VERSION VERSION_LESS "1.7.2")
             )
 
     install(DIRECTORY include/${PROJECT_NAME}/
-            DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+            DESTINATION include/${PROJECT_NAME}
             )
-
 
     install(TARGETS pcl_omp_registration
-            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION ib/${PROJECT_NAME}
             )
+
+
+    ament_target_dependencies(${PROJECT_NAME}
+            roscpp
+            )
+
+    ament_export_include_directories(include)
+
+    ament_export_libraries(pcl_omp_registration)
+
+    ament_export_dependencies(
+            PCL
+            Eigen3)
+
+    ament_package()
+
 ENDIF (PCL_VERSION VERSION_LESS "1.7.2")
