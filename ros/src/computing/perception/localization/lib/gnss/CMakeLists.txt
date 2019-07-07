@@ -1,16 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(gnss)
 
-find_package(catkin REQUIRED COMPONENTS roscpp)
-
-catkin_package(
-        INCLUDE_DIRS include
-        LIBRARIES gnss
-)
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
 
 include_directories(
         include
-        ${catkin_INCLUDE_DIRS}
 )
 
 add_library(gnss
@@ -18,17 +13,27 @@ add_library(gnss
         )
 
 target_link_libraries(gnss
-        ${catkin_LIBRARIES}
         )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        DESTINATION include/${PROJECT_NAME}
         FILES_MATCHING PATTERN "*.hpp"
         )
 
+ament_target_dependencies(${PROJECT_NAME}
+        roscpp
+        )
 
 install(TARGETS gnss
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
         )
+
+ament_export_include_directories(include)
+
+ament_export_libraries(gnss)
+
+ament_export_dependencies(roscpp)
+
+ament_package()
