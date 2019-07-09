@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(naive_motion_predict)
 
 include(FindPkgConfig)
@@ -7,28 +7,16 @@ include(FindPkgConfig)
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  sensor_msgs
-  tf
-  imm_ukf_pda_track
-  autoware_msgs
-  )
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(tf REQUIRED)
+find_package(imm_ukf_pda_track REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS}")
 
-catkin_package(
-        CATKIN_DEPENDS
-        roscpp
-        sensor_msgs
-        autoware_msgs
-        tf
-        imm_ukf_pda_track
-)
-
 include_directories(
   include
-  ${catkin_INCLUDE_DIRS}
   ${autoware_msgs_INCLUDE_DIRS}
 )
 
@@ -38,16 +26,27 @@ add_executable(naive_motion_predict
         nodes/naive_motion_predict/naive_motion_predict.cpp)
 
 target_link_libraries(naive_motion_predict
-        ${catkin_LIBRARIES}
         )
 
-add_dependencies(naive_motion_predict
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(naive_motion_predict
+        roscpp
+        autoware_msgs
+        sensor_msgs
+        tf
+        imm_ukf_pda_track
         )
 
 install(TARGETS
         naive_motion_predict
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
         )
+
+ament_export_dependencies(roscpp)
+ament_export_dependencies(autoware_msgs)
+ament_export_dependencies(sensor_msgs)
+ament_export_dependencies(tf)
+ament_export_dependencies(imm_ukf_pda_track)
+
+ament_package()
