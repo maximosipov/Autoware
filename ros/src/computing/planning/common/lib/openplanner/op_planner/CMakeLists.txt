@@ -1,35 +1,25 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(op_planner)
 
 # Get a ros version
 set(ROS_VERSION $ENV{ROS_DISTRO})
 
-find_package(catkin REQUIRED COMPONENTS
-		autoware_build_flags
-		cmake_modules
-		op_utility
-)
+find_package(ament_cmake REQUIRED)
+find_package(autoware_build_flags REQUIRED)
+find_package(cmake_modules REQUIRED)
+find_package(op_utility REQUIRED)
 
 find_package(OpenCV REQUIRED)
 find_package(TinyXML REQUIRED)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-   INCLUDE_DIRS include
-   LIBRARIES  op_planner
-   CATKIN_DEPENDS op_utility
-   DEPENDS TinyXML
-)
 
 ###########
 ## Build ##
 ###########
 
-include_directories(${catkin_INCLUDE_DIRS}
+include_directories(
 		include
 		${TinyXML_INCLUDE_DIRS}
+		${op_utility_INCLUDE_DIRS}
 )
 
 set(PLANNERH_SRC
@@ -53,19 +43,30 @@ add_library(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME}
-		${catkin_LIBRARIES}
 		${OpenCV_LIBS}
 		${TinyXML_LIBRARIES}
+		${op_utility_LIBRARIES}
 )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-		DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+		DESTINATION include/${PROJECT_NAME}
 		FILES_MATCHING PATTERN "*.h"
 		)
 
 
 install(TARGETS op_planner
-		ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-		LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-		RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+		ARCHIVE DESTINATION lib
+		LIBRARY DESTINATION lib
+		RUNTIME DESTINATION lib/${PROJECT_NAME}
 		)
+
+ament_export_include_directories(include)
+
+ament_export_libraries(${PROJECT_NAME})
+
+ament_export_dependencies(op_utility)
+
+ament_export_dependencies(OpenCV)
+ament_export_dependencies(TinyXML)
+
+ament_package()
