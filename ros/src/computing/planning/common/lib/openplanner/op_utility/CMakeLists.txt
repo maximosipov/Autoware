@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(op_utility)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -7,29 +7,20 @@ set(ROS_VERSION $ENV{ROS_DISTRO})
 
 find_package(autoware_build_flags REQUIRED)
 
+find_package(ament_cmake REQUIRED)
 find_package(vector_map_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-	vector_map_msgs 
-	vector_map_server
-)
+find_package(vector_map_server REQUIRED)
 
 find_package(TinyXML REQUIRED)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-        INCLUDE_DIRS include
-        LIBRARIES op_utility
-        CATKIN_DEPENDS vector_map_msgs vector_map_server
-)
 
 ###########
 ## Build ##
 ###########
 
-include_directories(${catkin_INCLUDE_DIRS}
-        include)
+include_directories(
+        include
+        ${vector_map_msgs_INCLUDE_DIRS}
+        )
 
 set(UTILITYH_SRC
         src/DataRW.cpp
@@ -42,19 +33,30 @@ add_library(${PROJECT_NAME}
         )
 
 target_link_libraries(${PROJECT_NAME}
-        ${catkin_LIBRARIES}
         ${OpenCV_LIBS}
         ${TinyXML_LIBRARIES}
         )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        DESTINATION include/${PROJECT_NAME}
         FILES_MATCHING PATTERN "*.h"
         )
 
 
 install(TARGETS op_utility
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION lib/${PROJECT_NAME}
         )
+
+
+ament_export_include_directories(include)
+
+ament_export_libraries(${PROJECT_NAME})
+
+ament_export_dependencies(vector_map_msgs)
+ament_export_dependencies(vector_map_server)
+
+ament_export_dependencies(TinyXML)
+
+ament_package()
