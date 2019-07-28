@@ -1,70 +1,58 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(lane_planner)
 
 
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
+find_package(autoware_config_msgs REQUIRED)
 
 find_package(vector_map REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        std_msgs
-        tablet_socket
-        waypoint_follower
-        gnss
-        autoware_msgs
-        )
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(tablet_socket REQUIRED)
+find_package(waypoint_follower REQUIRED)
+find_package(gnss REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS}")
 
-catkin_package(
-        INCLUDE_DIRS include
-        LIBRARIES lane_planner
-        CATKIN_DEPENDS roscpp
-        std_msgs
-        tablet_socket
-        waypoint_follower
-        vector_map
-        gnss
-        autoware_msgs
-)
-
 include_directories(
         include
-        ${catkin_INCLUDE_DIRS}
         ${vector_map_INCLUDE_DIRS}
         ${autoware_msgs_INCLUDE_DIRS}
+        ${tablet_socket_INCLUDE_DIRS}
+        ${autoware_config_msgs_INCLUDE_DIRS}
+        ${waypoint_follower_INCLUDE_DIRS}
 )
 
 add_library(lane_planner lib/lane_planner/lane_planner_vmap.cpp)
-target_link_libraries(lane_planner ${catkin_LIBRARIES})
-add_dependencies(lane_planner
-        ${catkin_EXPORTED_TARGETS}
+target_link_libraries(lane_planner
+        ${roscpp_LIBRARIES}
+        ${gnss_LIBRARIES}
+        )
+ament_target_dependencies(lane_planner
         )
 
 add_executable(lane_navi nodes/lane_navi/lane_navi.cpp)
 target_link_libraries(lane_navi
         lane_planner
-        ${catkin_LIBRARIES}
         )
-add_dependencies(lane_navi
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(lane_navi
         )
 
 add_executable(lane_rule nodes/lane_rule/lane_rule.cpp)
 target_link_libraries(lane_rule
         lane_planner
-        ${catkin_LIBRARIES}
         )
-add_dependencies(lane_rule
-        ${catkin_EXPORTED_TARGETS}
+ament_target_dependencies(lane_rule
         )
 
 add_executable(lane_stop nodes/lane_stop/lane_stop.cpp)
-target_link_libraries(lane_stop lane_planner ${catkin_LIBRARIES})
-add_dependencies(lane_stop
-        ${catkin_EXPORTED_TARGETS}
+target_link_libraries(lane_stop
+        lane_planner
+        )
+ament_target_dependencies(lane_stop
         )
 
 add_executable(lane_select
@@ -72,13 +60,14 @@ add_executable(lane_select
         nodes/lane_select/lane_select_core.cpp
         nodes/lane_select/hermite_curve.cpp
         )
-target_link_libraries(lane_select ${catkin_LIBRARIES})
-add_dependencies(lane_select
-        ${catkin_EXPORTED_TARGETS}
+target_link_libraries(lane_select
+        ${roscpp_LIBRARIES}
+        )
+ament_target_dependencies(lane_select
         )
 
 install(DIRECTORY include/${PROJECT_NAME}/
-        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
+        DESTINATION include/${PROJECT_NAME}
         FILES_MATCHING PATTERN "*.hpp"
         )
 
@@ -88,7 +77,21 @@ install(TARGETS
         lane_rule
         lane_navi
         lane_planner
-        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
         )
+
+ament_export_include_directories(include)
+
+ament_export_libraries(lane_planner)
+
+ament_export_dependencies(autoware_msgs)
+ament_export_dependencies(vector_map)
+ament_export_dependencies(roscpp)
+ament_export_dependencies(std_msgs)
+ament_export_dependencies(tablet_socket)
+ament_export_dependencies(waypoint_follower)
+ament_export_dependencies(gnss)
+
+ament_package()
