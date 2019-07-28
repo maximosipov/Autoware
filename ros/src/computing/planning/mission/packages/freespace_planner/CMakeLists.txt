@@ -1,30 +1,44 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(freespace_planner)
 
 
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  nav_msgs
-  visualization_msgs
-  tf
-  autoware_msgs
-)
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(tf REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS}")
-
-catkin_package(
-  CATKIN_DEPENDS autoware_msgs
-)
 
 include_directories(
   include
   ${autoware_msgs_INCLUDE_DIRS}
-  ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(astar_navi nodes/astar_navi/astar_navi.cpp nodes/astar_navi/astar_search.cpp nodes/astar_navi/search_info_ros.cpp include/astar_util.cpp)
-target_link_libraries(astar_navi ${catkin_LIBRARIES})
-add_dependencies(astar_navi ${catkin_EXPORTED_TARGETS})
+add_executable(astar_navi
+  nodes/astar_navi/astar_navi.cpp
+  nodes/astar_navi/astar_search.cpp
+  nodes/astar_navi/search_info_ros.cpp
+  include/astar_util.cpp)
+
+target_link_libraries(astar_navi
+)
+
+ament_target_dependencies(astar_navi
+  autoware_msgs
+  roscpp
+  nav_msgs
+  visualization_msgs
+  tf
+)
+
+ament_export_dependencies(autoware_msgs)
+ament_export_dependencies(roscpp)
+ament_export_dependencies(nav_msgs)
+ament_export_dependencies(visualization_msgs)
+ament_export_dependencies(tf)
+
+ament_package()
