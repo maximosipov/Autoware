@@ -1,12 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(vector_map_msgs)
 
 
 find_package(autoware_build_flags REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-  std_msgs
-  message_generation
-)
+find_package(ament_cmake REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(message_generation REQUIRED)
 
 set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS}")
 
@@ -83,6 +82,6 @@ generate_messages(
   std_msgs
 )
 
-catkin_package(
-  CATKIN_DEPENDS message_runtime std_msgs
-)
+ament_export_dependencies(std_msgs)
+
+ament_package()
