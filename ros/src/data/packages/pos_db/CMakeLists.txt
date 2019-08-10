@@ -1,39 +1,29 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(pos_db)
 
 
 find_package(autoware_build_flags REQUIRED)
 
 find_package(autoware_msgs REQUIRED)
-find_package(catkin REQUIRED COMPONENTS
-        roscpp
-        gnss
-        jsk_recognition_msgs
-        tf
-        jsk_rviz_plugins
-        autoware_msgs
-        )
+find_package(ament_cmake REQUIRED)
+find_package(roscpp REQUIRED)
+find_package(gnss REQUIRED)
+find_package(jsk_recognition_msgs REQUIRED)
+find_package(tf REQUIRED)
+find_package(jsk_rviz_plugins REQUIRED)
 
 include(FindLibSsh2.cmake)
 
 set(CMAKE_CXX_FLAGS "-O2 -Wall ${CMAKE_CXX_FLAGS}")
 
-catkin_package(
-        CATKIN_DEPENDS
-        roscpp
-        gnss
-        jsk_recognition_msgs
-        tf
-        autoware_msgs
-)
-
 if (LIBSSH2_FOUND)
 
     include_directories(
             include
-            ${catkin_INCLUDE_DIRS}
             ${autoware_msgs_INCLUDE_DIRS}
             ${LIBSSH2_INCLUDE_DIRS}
+            ${tf_INCLUDE_DIRS}
+            ${gnss_INCLUDE_DIRS}
     )
 
     add_library(pos_db
@@ -48,7 +38,8 @@ if (LIBSSH2_FOUND)
             nodes/pos_downloader/pos_downloader.cpp)
     target_link_libraries(pos_downloader
             pos_db
-            ${catkin_LIBRARIES}
+            ${roscpp_LIBRARIES}
+            ${gnss_LIBRARIES}
             ${LIBSSH2_LIBRARIES}
             )
 
@@ -56,11 +47,11 @@ if (LIBSSH2_FOUND)
             nodes/pos_uploader/pos_uploader.cpp)
     target_link_libraries(pos_uploader
             pos_db
-            ${catkin_LIBRARIES}
+            ${roscpp_LIBRARIES}
+            ${gnss_LIBRARIES}
             ${LIBSSH2_LIBRARIES}
             )
-    add_dependencies(pos_uploader
-            ${catkin_EXPORTED_TARGETS}
+    ament_target_dependencies(pos_uploader
             )
 
     set(CAMERA_YAML "$ENV{HOME}/.ros/autoware/camera_lidar_2d.yaml")
@@ -73,12 +64,25 @@ if (LIBSSH2_FOUND)
             pos_downloader
             pos_db
             pos_uploader
-            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-            RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION})
+            ARCHIVE DESTINATION lib
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION bin)
 
     install(DIRECTORY include
-            DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+            DESTINATION include/${PROJECT_NAME})
+
+    ament_export_include_directories(include)
+
+    ament_export_libraries(pos_db)
+
+    ament_export_dependencies(autoware_msgs)
+    ament_export_dependencies(roscpp)
+    ament_export_dependencies(gnss)
+    ament_export_dependencies(jsk_recognition_msgs)
+    ament_export_dependencies(tf)
+    ament_export_dependencies(jsk_rviz_plugins)
+
+    ament_package()
 else()
     message("LibSSH2 not found. pos_db package won't be built.")
 endif()
